@@ -1,0 +1,69 @@
+#! /usr/bin/env bash
+
+
+browse ()
+{
+    open "$(tree_url)"
+}
+
+current_branch ()
+{
+    git symbolic-ref --quiet --short HEAD
+}
+
+
+pipelines ()
+{
+    open "$(pipelines_url)"
+}
+
+
+pipelines_url ()
+{
+    project_url "/pipelines"
+}
+
+
+
+project_url ()
+{
+    local format=$1
+    shift
+    # shellcheck disable=SC2068
+    printf "%s$format" \
+           "$(git remote get-url origin | \
+                  sed -e 's|:|/|' \
+                      -e 's|^git@|https://|' \
+                      -e 's/\.git$//')" \
+           $@
+}
+
+
+tree_url ()
+{
+    project_url "/tree/%s" "$(current_branch)"
+}
+
+
+
+# shellcheck disable=SC2120
+usage ()
+{
+    echo "TOOD: write usage"
+    exit "${1:-100}"
+}
+
+
+case $1 in
+    browse)
+        browse
+        ;;
+    pipeline|pipelines)
+        pipelines
+        ;;
+
+    *)
+        # shellcheck disable=SC2119
+        usage
+        ;;
+esac
