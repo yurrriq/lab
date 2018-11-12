@@ -1,11 +1,17 @@
 #! /usr/bin/env bash
 
+set -euo pipefail
+
 browse() {
     open "$(project_url "/tree/%s" "$(current_branch)")"
 }
 
 current_branch() {
     git symbolic-ref --quiet --short HEAD
+}
+
+merge_requests() {
+    open "$(project_url "/merge_requests")"
 }
 
 pipelines() {
@@ -15,30 +21,30 @@ pipelines() {
 project_url() {
     local format=$1
     shift
-    # shellcheck disable=SC2068
     printf "%s$format" \
         "$(git remote get-url origin \
             | sed -e 's|:|/|' \
                 -e 's|^git@|https://|' \
                 -e 's/\.git$//')" \
-        $@
+        "$@"
 }
 
-# shellcheck disable=SC2120
 usage() {
     echo "TOOD: write usage"
-    exit "${1:-100}"
+    exit "$1"
 }
 
 case $1 in
     browse | brwose)
         browse
         ;;
+    mr | mrs)
+        merge_requests
+        ;;
     pipe | pipes | pipeline | pipelines)
         pipelines
         ;;
     *)
-        # shellcheck disable=SC2119
-        usage
+        usage 100
         ;;
 esac
