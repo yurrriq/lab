@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 browse() {
-    open "$(tree_url)"
+    open "$(project_url "/tree/%s" "$(current_branch)")"
 }
 
 current_branch() {
@@ -9,11 +9,7 @@ current_branch() {
 }
 
 pipelines() {
-    open "$(pipelines_url)"
-}
-
-pipelines_url() {
-    project_url "/pipelines"
+    open "$(project_url "/pipelines")"
 }
 
 project_url() {
@@ -26,10 +22,6 @@ project_url() {
                 -e 's|^git@|https://|' \
                 -e 's/\.git$//')" \
         $@
-}
-
-tree_url() {
-    project_url "/tree/%s" "$(current_branch)"
 }
 
 # shellcheck disable=SC2120
