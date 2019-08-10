@@ -1,2 +1,133 @@
+#+STARTUP: showall
 * git + lab = gitlab
 /Like [[https://github.com/github/hub][hub]] but for [[https://gitlab.com/][GitLab]]/
+
+** Source
+   :PROPERTIES:
+   :header-args:bash: :shebang "#! /usr/bin/env bash" :tangle lab
+   :END:
+
+Be safer.
+#+BEGIN_SRC bash
+set -eufo pipefail
+#+END_SRC
+
+Branch on OS type.
+#+BEGIN_SRC bash
+case "$OSTYPE" in
+#+END_SRC
+
+If Linux, use =xdg-open=.
+#+BEGIN_SRC bash :padline no
+    linux*)
+        _open="xdg-open"
+        ;;
+#+END_SRC
+
+If Darwin, use =open=.
+#+BEGIN_SRC bash :padline no
+    darwin*)
+        _open="open"
+        ;;
+#+END_SRC
+
+End the case expression.
+#+BEGIN_SRC bash :padline no
+esac
+#+END_SRC
+
+Open the current branch's tree in a browser.
+#+NAME: browse
+#+BEGIN_SRC bash
+browse() {
+    "$_open" "$(project_url "/tree/%s" "$(current_branch)")"
+}
+#+END_SRC
+
+Get the current branch as a short symbolic reference.
+#+NAME: current_branch
+#+BEGIN_SRC bash
+current_branch() {
+    git symbolic-ref --quiet --short HEAD
+}
+#+END_SRC
+
+Open the list of merge requests in a browser.
+#+NAME: merge_requests
+#+BEGIN_SRC bash
+merge_requests() {
+    "$_open" "$(project_url "/merge_requests")"
+}
+#+END_SRC
+
+Open the pipelines in a browser.
+#+NAME: pipelines
+#+BEGIN_SRC bash
+pipelines() {
+    "$_open" "$(project_url "/pipelines")"
+}
+#+END_SRC
+
+#+BEGIN_SRC bash
+repo_url() {
+    git remote get-url origin \
+        | sed -E \
+            -e 's,^git@([^:]+):,https://\1/,' \
+            -e 's,\.git$,,'
+}
+#+END_SRC
+
+Generate a project URL from a given format string.
+#+BEGIN_SRC bash
+project_url() {
+    local format="$1"
+    shift
+    printf "%s$format" "$(repo_url)" "$@"
+}
+#+END_SRC
+
+Print usage and exit with a given status code.
+#+BEGIN_SRC bash
+usage() {
+    echo "${0} [br{ow,wo}se | mr{,s} | pip{s,line,lines}]"
+    exit "$1"
+}
+#+END_SRC
+
+Handle the known commands, or die trying.
+#+BEGIN_SRC bash
+case "${1:-}" in
+#+END_SRC
+
+Browse the tree of the current branch.
+#+BEGIN_SRC bash :padline no
+    browse | brwose)
+        browse
+        ;;
+#+END_SRC
+
+Browse the list of merge requests.
+#+BEGIN_SRC bash :padline no
+    mr | mrs)
+        merge_requests
+        ;;
+#+END_SRC
+
+Browse the list of pipelines.
+#+BEGIN_SRC bash :padline no
+    pipe | pipes | pipeline | pipelines)
+        pipelines
+        ;;
+    *)
+#+END_SRC
+
+Die trying.
+#+BEGIN_SRC bash :padline no
+        usage 100
+        ;;
+#+END_SRC
+
+End the case expression.
+#+BEGIN_SRC bash :padline no
+esac
+#+END_SRC

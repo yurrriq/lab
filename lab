@@ -1,9 +1,17 @@
 #! /usr/bin/env bash
+set -eufo pipefail
 
-set -euo pipefail
+case "$OSTYPE" in
+    linux*)
+        _open="xdg-open"
+        ;;
+    darwin*)
+        _open="open"
+        ;;
+esac
 
 browse() {
-    open "$(project_url "/tree/%s" "$(current_branch)")"
+    "$_open" "$(project_url "/tree/%s" "$(current_branch)")"
 }
 
 current_branch() {
@@ -11,30 +19,32 @@ current_branch() {
 }
 
 merge_requests() {
-    open "$(project_url "/merge_requests")"
+    "$_open" "$(project_url "/merge_requests")"
 }
 
 pipelines() {
-    open "$(project_url "/pipelines")"
+    "$_open" "$(project_url "/pipelines")"
+}
+
+repo_url() {
+    git remote get-url origin \
+        | sed -E \
+            -e 's,^git@([^:]+):,https://\1/,' \
+            -e 's,\.git$,,'
 }
 
 project_url() {
-    local format=$1
+    local format="$1"
     shift
-    printf "%s$format" \
-        "$(git remote get-url origin \
-            | sed -e 's|:|/|' \
-                -e 's|^git@|https://|' \
-                -e 's/\.git$//')" \
-        "$@"
+    printf "%s$format" "$(repo_url)" "$@"
 }
 
 usage() {
-    echo "TOOD: write usage"
+    echo "${0} [br{ow,wo}se | mr{,s} | pip{s,line,lines}]"
     exit "$1"
 }
 
-case $1 in
+case "${1:-}" in
     browse | brwose)
         browse
         ;;
